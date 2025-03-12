@@ -7,8 +7,19 @@ SciSystemInfo = provider(
     fields = {
         "target_vm": "The target VM to use, as a string.",
         "defines": "A set of defines to use.",
-        "system_header": "The system header file to use.",
-        "headers": "A depset of headers that are available to include.",
+        "include_path": """
+            The include path to use as a string. This is passed directly to the
+            compiler.
+        """,
+        "system_header_path": """
+            The system header path to use as a string. This is passed directly
+            to the compiler.
+        """
+        "dep_files": """
+            A depset of files that are needed to build the system header.
+            If the include path or system header is not contained in the
+            bazel module, this can be empty.
+        """
     },
 )
 
@@ -165,15 +176,15 @@ def _sci_binary_impl(ctx):
     inputs = [
         build_env_info.selector_file,
         build_env_info.classdef_file,
-        system_info.system_header,
+        system_info.dep_files,
         build_env_info.game_header,
     ]
     srcs = []
     hdrs = depset(transitive = [
         script[_SciScriptInfo].headers
         for script in ctx.attr.srcs
-    ] + [system_info.headers]).to_list()
-    include_dirs = set([hdr.dirname for hdr in hdrs])
+    ]).to_list()
+    include_dirs = set([hdr.dirname for hdr in hdrs] + [system_info.include_path])
     for src_value in ctx.attr.srcs:
         src_info = src_value[_SciScriptInfo]
         srcs.append(src_info.src)
@@ -198,7 +209,7 @@ def _sci_binary_impl(ctx):
                 .add("-t", target_env)
                 .add("--selector_file", build_env_info.selector_file)
                 .add("--classdef_file", build_env_info.classdef_file)
-                .add("--system_header", system_info.system_header)
+                .add("--system_header", system_info.system_header_path)
                 .add("--game_header", build_env_info.game_header)
                 .add_all(list(include_dirs), before_each = "-I")
                 .add("-o", out_dir.path)
