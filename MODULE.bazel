@@ -1,0 +1,4 @@
+"""A module for providing rules for compilation of Sierra Creative Interpreter (SCI) resources and scripts."""
+module(
+    name = "rules_sci",
+)

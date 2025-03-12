@@ -1,0 +1,10 @@
+# A toolchain for the Sierra Creative Interpreter compiler.
+#
+# fields:
+#  scic: The executable file of the SCI compiler. The binary should follow the
+#    scinc argument specification.
+#  systems: A list of SCISystemInfo objects supported by the toolchain.
+toolchain_type(
+    name = "sci_compiler_toolchain_type",
+    visibility = ["//visibility:public"],
+)
