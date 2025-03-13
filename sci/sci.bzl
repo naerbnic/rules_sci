@@ -50,7 +50,7 @@ _SciScriptInfo = provider(
 )
 
 def _sci_system_impl(ctx):
-    system_header_path = ctx.file.system_header.short_path
+    system_header_path = ctx.file.system_header.path
     dep_files = depset(
         [ctx.file.system_header],
         transitive = [
