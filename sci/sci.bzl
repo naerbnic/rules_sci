@@ -14,12 +14,12 @@ SciSystemInfo = provider(
         "system_header_path": """
             The system header path to use as a string. This is passed directly
             to the compiler.
-        """
+        """,
         "dep_files": """
             A depset of files that are needed to build the system header.
             If the include path or system header is not contained in the
             bazel module, this can be empty.
-        """
+        """,
     },
 )
 
@@ -50,7 +50,8 @@ _SciScriptInfo = provider(
 )
 
 def _sci_system_impl(ctx):
-    headers = depset(
+    system_header_path = ctx.file.system_header.short_path
+    dep_files = depset(
         [ctx.file.system_header],
         transitive = [
             dep[_SciHeaderSetInfo].headers
@@ -60,9 +61,10 @@ def _sci_system_impl(ctx):
     return [
         SciSystemInfo(
             target_vm = ctx.attr.target_vm,
+            include_path = ctx.file.system_header.dirname,
             defines = ctx.attr.defines,
-            system_header = ctx.file.system_header,
-            headers = headers,
+            system_header_path = system_header_path,
+            dep_files = dep_files,
         ),
     ]
 
@@ -161,7 +163,7 @@ sci_script = rule(
 )
 
 def _sci_binary_impl(ctx):
-    sci_toolchain = ctx.toolchains["//sci/toolchains:sci_compiler_toolchain_type"]
+    sci_toolchain = ctx.toolchains["//sci/toolchains:toolchain_type"]
     build_env_info = ctx.attr.build_env[_SciBuildEnvInfo]
     possible_systems = [
         system
@@ -173,12 +175,16 @@ def _sci_binary_impl(ctx):
     system_info = possible_systems[0]
     out_dir = ctx.actions.declare_directory(ctx.label.name)
     outputs = [out_dir]
-    inputs = [
-        build_env_info.selector_file,
-        build_env_info.classdef_file,
-        system_info.dep_files,
-        build_env_info.game_header,
-    ]
+    inputs = depset(
+        [
+            build_env_info.selector_file,
+            build_env_info.classdef_file,
+            build_env_info.game_header,
+        ],
+        transitive = [
+            system_info.dep_files,
+        ],
+    ).to_list()
     srcs = []
     hdrs = depset(transitive = [
         script[_SciScriptInfo].headers
@@ -235,5 +241,5 @@ sci_binary = rule(
             mandatory = True,
         ),
     },
-    toolchains = ["//sci/toolchains:sci_compiler_toolchain_type"],
+    toolchains = ["//sci/toolchains:toolchain_type"],
 )

@@ -5,6 +5,6 @@
 #    scinc argument specification.
 #  systems: A list of SCISystemInfo objects supported by the toolchain.
 toolchain_type(
-    name = "sci_compiler_toolchain_type",
+    name = "toolchain_type",
     visibility = ["//visibility:public"],
 )
